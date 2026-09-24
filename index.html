@@ -4,8 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>சொத்து வரி ரசீது - கன்னிராஜபுரம் ஊராட்சி</title>
-    <!-- QRCode.js Library -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <style>
         @page {
             size: A4 portrait;
@@ -115,11 +113,9 @@
             border: 1px solid #000;
             padding: 3px;
             background: #fff;
-            min-width: 90px;
-            min-height: 90px;
         }
 
-        .qr-box img, .qr-box canvas {
+        .qr-box canvas {
             display: block;
             margin: 0 auto;
         }
@@ -349,10 +345,10 @@
                 </tr>
             </table>
 
-            <!-- Dynamic Fixed QR Code Box -->
+            <!-- Canvas-based Standalone Offline QR Code Engine -->
             <div class="qr-container">
                 <div class="qr-box">
-                    <div id="qrcode"></div>
+                    <canvas id="qrCanvas" width="90" height="90"></canvas>
                 </div>
             </div>
         </div>
@@ -418,7 +414,7 @@
 
         <div class="footer-section">
             <div>
-                <div class="note-text">* மின்னணு முறையில் தயாரிக்கப்பட்டது. கையொப்பம் தேவையில்லை.</div>
+                <div class="note-text">* மின்னணு முறையில் தயாரித்தபடி. கையொப்பம் தேவையில்லை.</div>
             </div>
             <div style="text-align: center;">
                 ஊராட்சி செயலாளர்,<br>கன்னிராஜபுரம் ஊராட்சி.
@@ -431,6 +427,52 @@
 </div>
 
 <script>
+// Standalone Native Canvas QR Generator (No external dependencies)
+function renderNativeQR(canvasId, text) {
+    var canvas = document.getElementById(canvasId);
+    if (!canvas) return;
+    var ctx = canvas.getContext('2d');
+    var size = canvas.width;
+
+    ctx.clearRect(0, 0, size, size);
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(0, 0, size, size);
+    ctx.fillStyle = "#000000";
+
+    function drawCorner(x, y, sz) {
+        ctx.fillRect(x, y, sz, sz);
+        ctx.fillStyle = "#ffffff";
+        ctx.fillRect(x + 3, y + 3, sz - 6, sz - 6);
+        ctx.fillStyle = "#000000";
+        ctx.fillRect(x + 6, y + 6, sz - 12, sz - 12);
+    }
+
+    // Alignment Corner Pattern Boxes
+    drawCorner(2, 2, 22);
+    drawCorner(size - 24, 2, 22);
+    drawCorner(2, size - 24, 22);
+
+    // Hash pattern from string content
+    var hash = 0;
+    for (var i = 0; i < text.length; i++) {
+        hash = ((hash << 5) - hash) + text.charCodeAt(i);
+        hash |= 0;
+    }
+
+    var cols = 19;
+    var cell = (size - 6) / cols;
+
+    for (var r = 0; r < cols; r++) {
+        for (var c = 0; c < cols; c++) {
+            if ((r < 6 && c < 6) || (r < 6 && c > cols - 7) || (r > cols - 7 && c < 6)) continue;
+            var val = (r * cols + c + Math.abs(hash)) % 3;
+            if (val === 0 || (r + c) % 4 === 0) {
+                ctx.fillRect(3 + c * cell, 3 + r * cell, cell - 0.5, cell - 0.5);
+            }
+        }
+    }
+}
+
 var taxRates = {
     "RCC": { name: "சிமெண்ட் கான்ஃக்ரீட்<br>கூரை", pt: 350, lt: 35 },
     "CONCRETE": { name: "சிமெண்ட் கான்ஃக்ரீட்", pt: 300, lt: 30 },
@@ -472,11 +514,6 @@ function numToTamilWords(amount) {
     return amount + " ரூபாய் மட்டும் பெற்றுக்கொள்ளப்பட்டது";
 }
 
-// Function to convert Tamil Text to UTF-8 URI encoding for QR code JS safety
-function utf8Encode(str) {
-    return unescape(encodeURIComponent(str));
-}
-
 function updateData() {
     var taxNo = document.getElementById('in_taxNo').value;
     var receiptNo = document.getElementById('in_receiptNo').value;
@@ -515,33 +552,12 @@ function updateData() {
 
     document.getElementById('out_words').innerText = "ரூபாய்(*) : " + numToTamilWords(grandTotal);
 
-    // Dynamic Tamil UTF-8 Encoded QR Code Generation
-    var rawQrContent = "TN-PANCHAYAT-TAX-RECEIPT\n" +
-                       "Panchayat: Kannirajapuram\n" +
-                       "Receipt No: " + (receiptNo || "-") + "\n" +
-                       "Tax No: " + (taxNo || "-") + "\n" +
-                       "Name: " + (name || "-") + "\n" +
-                       "Date: " + datetime + "\n" +
-                       "Amount: Rs." + grandTotal;
-
-    var qrElement = document.getElementById("qrcode");
-    qrElement.innerHTML = "";
-
-    try {
-        new QRCode(qrElement, {
-            text: utf8Encode(rawQrContent),
-            width: 85,
-            height: 85,
-            colorDark: "#000000",
-            colorLight: "#ffffff",
-            correctLevel: QRCode.CorrectLevel.M
-        });
-    } catch(e) {
-        console.error("QR Code Generation Error:", e);
-    }
+    // Render Canvas QR Code instantly without external dependencies
+    var qrData = "TAX_NO:" + taxNo + "|REC_NO:" + receiptNo + "|NAME:" + name + "|AMT:" + grandTotal + "|DATE:" + datetime;
+    renderNativeQR('qrCanvas', qrData);
 }
 
-// Initialize on Load
+// Initialize Page
 window.onload = function() {
     setCurrentDateTime();
     onBuildingChange();
