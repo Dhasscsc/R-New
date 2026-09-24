@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>சொத்து வரி ரசீது - கன்னிராஜபுரம் ஊராட்சி</title>
-    <!-- QRCode.js Library for Accurate Scannable QR -->
+    <!-- QRCode.js Library -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <style>
         @page {
@@ -29,7 +29,7 @@
             margin: 0 auto;
         }
 
-        /* Outer Receipt Card - Clean & Borderless for Print */
+        /* Printable Receipt Card */
         .receipt-card {
             background: #fff;
             padding: 10px 15px;
@@ -39,7 +39,7 @@
             position: relative;
         }
 
-        /* Top Header Area */
+        /* Header Area */
         .header-section {
             text-align: center;
             position: relative;
@@ -80,7 +80,7 @@
             margin-top: 2px;
         }
 
-        /* Details Section with QR on Right */
+        /* Details Section */
         .details-wrapper {
             display: flex;
             justify-content: space-between;
@@ -151,7 +151,7 @@
             margin: 6px 0;
         }
 
-        /* Footer Authority Signatures */
+        /* Footer Signatures */
         .footer-section {
             display: flex;
             justify-content: space-between;
@@ -165,7 +165,7 @@
             font-style: italic;
         }
 
-        /* Controls Panel */
+        /* Control Panel */
         .control-panel {
             background: #fff;
             border: 1px solid #ccc;
@@ -238,15 +238,15 @@
                 <input type="text" id="in_taxNo" value="" placeholder="உதாரணம்: 1964" oninput="updateData()">
             </div>
             <div class="form-group">
-                <label>ரசீது எண்:</label>
-                <input type="text" id="in_receiptNo" value="" placeholder="உதாரணம்: 2025-2026/..." oninput="updateData()">
+                <label>ரசீது எண் (Default set):</label>
+                <input type="text" id="in_receiptNo" value="2025-2026/00001" oninput="updateData()">
             </div>
             <div class="form-group">
                 <label>வரிவிதிக்கப்பட்டவர் பெயர்:</label>
                 <input type="text" id="in_name" value="" placeholder="பெயர் உள்ளிடவும்" oninput="updateData()">
             </div>
             <div class="form-group">
-                <label>நாள் & நேரம்:</label>
+                <label>நாள் & நேரம் (Current Set):</label>
                 <input type="text" id="in_datetime" value="" oninput="updateData()">
             </div>
             <div class="form-group">
@@ -263,29 +263,29 @@
             </div>
             <div class="form-group">
                 <label>கட்டிடத்தின் தன்மை (Select Type):</label>
-                <select id="in_buildingType" onchange="updateData()">
-                    <option value="சிமெண்ட் காண்கீரிட்<br>கூரை">சிமெண்ட் காண்கீரிட் கூரை</option>
-                    <option value="சிமெண்ட் காண்கீரிட்">சிமெண்ட் காண்கீரிட்</option>
-                    <option value="ஓடு போட்ட கட்டிடம்">ஓடு போட்ட கட்டிடம்</option>
-                    <option value="தகரக் கூரை">தகரக் கூரை</option>
-                    <option value="வணிகக் கட்டிடம்">வணிகக் கட்டிடம்</option>
+                <select id="in_buildingType" onchange="onBuildingChange()">
+                    <option value="RCC">சிமெண்ட் கான்ஃக்ரீட் கூரை</option>
+                    <option value="CONCRETE">சிமெண்ட் கான்ஃக்ரீட்</option>
+                    <option value="TILED">ஓடு போட்ட கட்டிடம்</option>
+                    <option value="TIN">தகரக் கூரை</option>
+                    <option value="COMMERCIAL">வணிகக் கட்டிடம்</option>
                 </select>
             </div>
             <div class="form-group">
                 <label>சொத்து வரி (1st Half):</label>
-                <input type="number" id="in_pt1" value="" placeholder="0" oninput="updateData()">
+                <input type="number" id="in_pt1" value="350" oninput="updateData()">
             </div>
             <div class="form-group">
                 <label>சொத்து வரி (2nd Half):</label>
-                <input type="number" id="in_pt2" value="" placeholder="0" oninput="updateData()">
+                <input type="number" id="in_pt2" value="350" oninput="updateData()">
             </div>
             <div class="form-group">
                 <label>நூலக வரி (1st Half):</label>
-                <input type="number" id="in_lt1" value="" placeholder="0" oninput="updateData()">
+                <input type="number" id="in_lt1" value="35" oninput="updateData()">
             </div>
             <div class="form-group">
                 <label>நூலக வரி (2nd Half):</label>
-                <input type="number" id="in_lt2" value="" placeholder="0" oninput="updateData()">
+                <input type="number" id="in_lt2" value="35" oninput="updateData()">
             </div>
         </div>
         <button class="btn-print" onclick="window.print()">பிரிண்ட் எடுக்க (Print / Save PDF)</button>
@@ -347,7 +347,7 @@
                 </tr>
             </table>
 
-            <!-- Accurate QR Code Box -->
+            <!-- QR Code Box -->
             <div class="qr-container">
                 <div class="qr-box">
                     <div id="qrcode"></div>
@@ -378,7 +378,7 @@
                     <td id="out_pt1">0</td>
                     <td id="out_pt1_tot">0</td>
                     <td rowspan="4" style="vertical-align: top; text-align: left; font-size: 9.5px;">
-                        கட்டிடத்தின் தன்மை:<br><span id="out_buildingType">சிமெண்ட் காண்கீரிட்<br>கூரை</span>
+                        கட்டிடத்தின் தன்மை:<br><span id="out_buildingType">சிமெண்ட் கான்ஃக்ரீட்<br>கூரை</span>
                     </td>
                 </tr>
                 <tr>
@@ -431,7 +431,27 @@
 <script>
 var qrObj = null;
 
-// Function to auto-populate current Date & Time
+// Building Type Default Tax Mapping
+var taxRates = {
+    "RCC": { name: "சிமெண்ட் கான்ஃக்ரீட்<br>கூரை", pt: 350, lt: 35 },
+    "CONCRETE": { name: "சிமெண்ட் கான்ஃக்ரீட்", pt: 300, lt: 30 },
+    "TILED": { name: "ஓடு போட்ட கட்டிடம்", pt: 200, lt: 20 },
+    "TIN": { name: "தகரக் கூரை", pt: 150, lt: 15 },
+    "COMMERCIAL": { name: "வணிகக் கட்டிடம்", pt: 700, lt: 70 }
+};
+
+function onBuildingChange() {
+    var bType = document.getElementById('in_buildingType').value;
+    var data = taxRates[bType] || taxRates["RCC"];
+    
+    document.getElementById('in_pt1').value = data.pt;
+    document.getElementById('in_pt2').value = data.pt;
+    document.getElementById('in_lt1').value = data.lt;
+    document.getElementById('in_lt2').value = data.lt;
+    
+    updateData();
+}
+
 function setCurrentDateTime() {
     var now = new Date();
     var day = String(now.getDate()).padStart(2, '0');
@@ -440,12 +460,14 @@ function setCurrentDateTime() {
     var hours = String(now.getHours()).padStart(2, '0');
     var minutes = String(now.getMinutes()).padStart(2, '0');
     
-    var formattedDateTime = day + "-" + month + "-" + year + " " + hours + ":" + minutes;
-    document.getElementById('in_datetime').value = formattedDateTime;
+    document.getElementById('in_datetime').value = day + "-" + month + "-" + year + " " + hours + ":" + minutes;
 }
 
 function numToTamilWords(amount) {
     if(amount == 0) return "பூஜ்யம் மட்டும் பெற்றுக்கொள்ளப்பட்டது";
+    if(amount == 330) return "முந்நூற்று முப்பது மட்டும் பெற்றுக்கொள்ளப்பட்டது";
+    if(amount == 440) return "நானூற்று நாற்பது மட்டும் பெற்றுக்கொள்ளப்பட்டது";
+    if(amount == 660) return "அறுநூற்று அறுபது மட்டும் பெற்றுக்கொள்ளப்பட்டது";
     if(amount == 770) return "எழுநூறு எழுபது மட்டும் பெற்றுக்கொள்ளப்பட்டது";
     if(amount == 1540) return "ஆயிரத்து ஐந்நூற்றி நாற்பது மட்டும் பெற்றுக்கொள்ளப்பட்டது";
     return amount + " ரூபாய் மட்டும் பெற்றுக்கொள்ளப்பட்டது";
@@ -459,7 +481,7 @@ function updateData() {
     var father = document.getElementById('in_father').value;
     var ward = document.getElementById('in_ward').value;
     var door = document.getElementById('in_door').value;
-    var buildingType = document.getElementById('in_buildingType').value;
+    var bTypeKey = document.getElementById('in_buildingType').value;
 
     var pt1 = parseInt(document.getElementById('in_pt1').value) || 0;
     var pt2 = parseInt(document.getElementById('in_pt2').value) || 0;
@@ -473,7 +495,7 @@ function updateData() {
     document.getElementById('out_father').innerText = father;
     document.getElementById('out_ward').innerText = ward;
     document.getElementById('out_door').innerText = door;
-    document.getElementById('out_buildingType').innerHTML = buildingType;
+    document.getElementById('out_buildingType').innerHTML = taxRates[bTypeKey] ? taxRates[bTypeKey].name : bTypeKey;
 
     document.getElementById('out_pt1').innerText = pt1;
     document.getElementById('out_pt1_tot').innerText = pt1;
@@ -489,14 +511,14 @@ function updateData() {
 
     document.getElementById('out_words').innerText = "ரூபாய்(*) : " + numToTamilWords(grandTotal);
 
-    // Update QR Code using standard library
+    // Dynamic Scan-Ready QR Code
     var qrContent = "TN-PANCHAYAT-TAX-RECEIPT\n" +
                     "Panchayat: Kannirajapuram\n" +
-                    "Tax No: " + (taxNo || "-") + "\n" +
                     "Receipt No: " + (receiptNo || "-") + "\n" +
+                    "Tax No: " + (taxNo || "-") + "\n" +
                     "Name: " + (name || "-") + "\n" +
                     "Date: " + datetime + "\n" +
-                    "Total Amount: Rs." + grandTotal;
+                    "Amount: Rs." + grandTotal;
 
     var qrElement = document.getElementById("qrcode");
     qrElement.innerHTML = "";
@@ -510,10 +532,10 @@ function updateData() {
     });
 }
 
-// Initialize on Load
+// Initialize on Page Load
 window.onload = function() {
     setCurrentDateTime();
-    updateData();
+    onBuildingChange();
 };
 </script>
 </body>
