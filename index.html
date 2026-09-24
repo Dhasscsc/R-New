@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>சொத்து வரி ரசீது - கன்னிராஜபுரம் ஊராட்சி</title>
+    <!-- QRCode.js Library for Accurate Scannable QR -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <style>
         @page {
             size: A4 portrait;
@@ -88,7 +90,7 @@
         }
 
         .details-table {
-            width: 82%;
+            width: 80%;
             border-collapse: collapse;
         }
 
@@ -103,7 +105,7 @@
         }
 
         .qr-container {
-            width: 17%;
+            width: 19%;
             text-align: center;
             padding-top: 2px;
         }
@@ -111,12 +113,13 @@
         .qr-box {
             display: inline-block;
             border: 1px solid #000;
-            padding: 2px;
+            padding: 3px;
             background: #fff;
         }
 
-        .qr-box canvas {
+        .qr-box img, .qr-box canvas {
             display: block;
+            margin: 0 auto;
         }
 
         /* Tax Table */
@@ -188,8 +191,8 @@
             margin-bottom: 3px;
         }
 
-        .form-group input {
-            padding: 5px;
+        .form-group input, .form-group select {
+            padding: 6px;
             font-size: 12px;
             border: 1px solid #ccc;
             border-radius: 3px;
@@ -226,7 +229,7 @@
 <body>
 
 <div class="container">
-    <!-- Blank Form Controls -->
+    <!-- Form Controls -->
     <div class="control-panel">
         <h3 style="margin-top:0;">ரசீது தரவு உள்ளீடு (Enter Data)</h3>
         <div class="form-grid">
@@ -244,7 +247,7 @@
             </div>
             <div class="form-group">
                 <label>நாள் & நேரம்:</label>
-                <input type="text" id="in_datetime" value="" placeholder="DD-MM-YYYY HH:MM" oninput="updateData()">
+                <input type="text" id="in_datetime" value="" oninput="updateData()">
             </div>
             <div class="form-group">
                 <label>தந்தை/கணவர் பெயர்:</label>
@@ -257,6 +260,16 @@
             <div class="form-group">
                 <label>கதவு எண்:</label>
                 <input type="text" id="in_door" value="" placeholder="உதாரணம்: 5/178-10" oninput="updateData()">
+            </div>
+            <div class="form-group">
+                <label>கட்டிடத்தின் தன்மை (Select Type):</label>
+                <select id="in_buildingType" onchange="updateData()">
+                    <option value="சிமெண்ட் காண்கீரிட்<br>கூரை">சிமெண்ட் காண்கீரிட் கூரை</option>
+                    <option value="சிமெண்ட் காண்கீரிட்">சிமெண்ட் காண்கீரிட்</option>
+                    <option value="ஓடு போட்ட கட்டிடம்">ஓடு போட்ட கட்டிடம்</option>
+                    <option value="தகரக் கூரை">தகரக் கூரை</option>
+                    <option value="வணிகக் கட்டிடம்">வணிகக் கட்டிடம்</option>
+                </select>
             </div>
             <div class="form-group">
                 <label>சொத்து வரி (1st Half):</label>
@@ -334,10 +347,10 @@
                 </tr>
             </table>
 
-            <!-- QR Code Aligned on Right -->
+            <!-- Accurate QR Code Box -->
             <div class="qr-container">
                 <div class="qr-box">
-                    <canvas id="qrCanvas" width="95" height="95"></canvas>
+                    <div id="qrcode"></div>
                 </div>
             </div>
         </div>
@@ -365,7 +378,7 @@
                     <td id="out_pt1">0</td>
                     <td id="out_pt1_tot">0</td>
                     <td rowspan="4" style="vertical-align: top; text-align: left; font-size: 9.5px;">
-                        கட்டிடத்தின் தன்மை:<br>சிமெண்ட் காண்கீரிட்<br>கூரை
+                        கட்டிடத்தின் தன்மை:<br><span id="out_buildingType">சிமெண்ட் காண்கீரிட்<br>கூரை</span>
                     </td>
                 </tr>
                 <tr>
@@ -416,49 +429,20 @@
 </div>
 
 <script>
-// Canvas QR Engine
-(function(){
-    function drawQR(canvasId, text) {
-        var canvas = document.getElementById(canvasId);
-        var ctx = canvas.getContext('2d');
-        var size = canvas.width;
-        ctx.clearRect(0, 0, size, size);
-        
-        ctx.fillStyle = "#ffffff";
-        ctx.fillRect(0, 0, size, size);
-        ctx.fillStyle = "#000000";
-        
-        function drawSquare(x, y, w) {
-            ctx.fillRect(x, y, w, w);
-            ctx.fillStyle = "#ffffff";
-            ctx.fillRect(x+3, y+3, w-6, w-6);
-            ctx.fillStyle = "#000000";
-            ctx.fillRect(x+6, y+6, w-12, w-12);
-        }
-        
-        drawSquare(2, 2, 22);
-        drawSquare(size - 24, 2, 22);
-        drawSquare(2, size - 24, 22);
-        
-        var hash = 0;
-        for (var i = 0; i < text.length; i++) {
-            hash = ((hash << 5) - hash) + text.charCodeAt(i);
-            hash |= 0;
-        }
-        
-        var cols = 17;
-        var cell = (size - 6) / cols;
-        for(var r=0; r<cols; r++){
-            for(var c=0; c<cols; c++){
-                if((r<5 && c<5) || (r<5 && c>cols-6) || (r>cols-6 && c<5)) continue;
-                if((r*cols + c + Math.abs(hash)) % 3 === 0 || (r + c) % 5 === 0) {
-                    ctx.fillRect(3 + c*cell, 3 + r*cell, cell-0.4, cell-0.4);
-                }
-            }
-        }
-    }
-    window.renderQR = drawQR;
-})();
+var qrObj = null;
+
+// Function to auto-populate current Date & Time
+function setCurrentDateTime() {
+    var now = new Date();
+    var day = String(now.getDate()).padStart(2, '0');
+    var month = String(now.getMonth() + 1).padStart(2, '0');
+    var year = now.getFullYear();
+    var hours = String(now.getHours()).padStart(2, '0');
+    var minutes = String(now.getMinutes()).padStart(2, '0');
+    
+    var formattedDateTime = day + "-" + month + "-" + year + " " + hours + ":" + minutes;
+    document.getElementById('in_datetime').value = formattedDateTime;
+}
 
 function numToTamilWords(amount) {
     if(amount == 0) return "பூஜ்யம் மட்டும் பெற்றுக்கொள்ளப்பட்டது";
@@ -475,6 +459,7 @@ function updateData() {
     var father = document.getElementById('in_father').value;
     var ward = document.getElementById('in_ward').value;
     var door = document.getElementById('in_door').value;
+    var buildingType = document.getElementById('in_buildingType').value;
 
     var pt1 = parseInt(document.getElementById('in_pt1').value) || 0;
     var pt2 = parseInt(document.getElementById('in_pt2').value) || 0;
@@ -488,6 +473,7 @@ function updateData() {
     document.getElementById('out_father').innerText = father;
     document.getElementById('out_ward').innerText = ward;
     document.getElementById('out_door').innerText = door;
+    document.getElementById('out_buildingType').innerHTML = buildingType;
 
     document.getElementById('out_pt1').innerText = pt1;
     document.getElementById('out_pt1_tot').innerText = pt1;
@@ -503,12 +489,32 @@ function updateData() {
 
     document.getElementById('out_words').innerText = "ரூபாய்(*) : " + numToTamilWords(grandTotal);
 
-    var qrText = "Kannirajapuram Panchayat Tax Receipt\nReceipt No: " + receiptNo + "\nTax No: " + taxNo + "\nName: " + name + "\nAmount: Rs." + grandTotal;
-    window.renderQR('qrCanvas', qrText);
+    // Update QR Code using standard library
+    var qrContent = "TN-PANCHAYAT-TAX-RECEIPT\n" +
+                    "Panchayat: Kannirajapuram\n" +
+                    "Tax No: " + (taxNo || "-") + "\n" +
+                    "Receipt No: " + (receiptNo || "-") + "\n" +
+                    "Name: " + (name || "-") + "\n" +
+                    "Date: " + datetime + "\n" +
+                    "Total Amount: Rs." + grandTotal;
+
+    var qrElement = document.getElementById("qrcode");
+    qrElement.innerHTML = "";
+    qrObj = new QRCode(qrElement, {
+        text: qrContent,
+        width: 85,
+        height: 85,
+        colorDark : "#000000",
+        colorLight : "#ffffff",
+        correctLevel : QRCode.CorrectLevel.M
+    });
 }
 
-// Initial Load
-updateData();
+// Initialize on Load
+window.onload = function() {
+    setCurrentDateTime();
+    updateData();
+};
 </script>
 </body>
 </html>
